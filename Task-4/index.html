@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: sans-serif;
+        }
+        body{
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url(./wallpaperflare.com_wallpaper\ \(1\).jpg)no-repeat;
+            background-position: center;
+            background-size: cover;
+        }
+        .container{
+            width: 350px;
+            height: auto;
+            padding: 30px;
+            background: transparent;
+            border: 2px solid #e6b7eca1;
+            border-radius: 10px;
+            backdrop-filter: blur(15px);
+        }
+        h1{
+            color: #eee;
+            text-align: center;
+            margin-bottom: 36px;
+        }
+        .input-container{
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+        }
+        .todo-input{
+            flex: 1;
+            outline: none;
+            background: transparent;
+            border: 2px solid #e6b7eca1;
+            padding: 10px;
+            padding-left: 20px;
+            border-radius: 30px;
+            color: #eee;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .todo-input::placeholder{
+            color: #bfbfbf;
+        }
+        .add-button{
+            border: none;
+            outline: none;
+            background:#e6b7eca1 ;
+            color: #fff;
+            font-size: 35px;
+            cursor: pointer;
+            border-radius: 40px;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .empty-image{
+            margin: 55px auto 0;
+            display: block;
+        }
+        .todo{
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #463c7b;
+            margin: 10px;
+            border-radius: 5px;
+            padding: 10px 12px;
+            border: 2px solid #e6b7eca1;
+            transition: 0.2 all ease;
+        }
+        .todo:first-child{
+            margin-top: 0;
+        }
+        .todo:last-child{
+            margin-bottom: 0;
+        }
+        .todo:hover{
+            background-color: #e6b7eca1;
+        }
+        .todo label{
+            cursor: pointer;
+            width: fit-content;
+            display: flex;
+            align-items: center;
+            color: #eee;
+        }
+        .todo span{
+            padding-left: 20px;
+            cursor: pointer;
+            position: relative;
+        }
+        span::before{
+            content: "";
+            height: 20px;
+            width: 20px;
+            border: 2px solid #e6b7eca1;
+            position: absolute;
+            border-radius: 100px;
+            margin-left: -30px;
+        }
+        input[type='checkbox']{
+            visibility: hidden;
+        }
+        input:checked + span{
+            text-decoration: line-through;
+        }
+        .todo:hover input:checked + span::before, input:checked+span::before{
+            background: url(./check.svg) 50% 50% no-repeat #09bb21;
+            border-color: #09bb21;
+        }
+        .todo:hover span::before{
+            border-color: #eee;
+        }
+        .todo .delete-btn{
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            color: #eee;
+            font-size: 24px;
+        }
+        .todo-container{
+            height: 300px;
+            overflow: overlay;
+        }
+        .todo-container::-webkit-scrollbar-track{
+            background: rgb(247,247,247);
+            border-radius: 20px;
+        }
+        .todo-container::-webkit-scrollbar{
+            width: 0;
+        }
+        .todo-container:hover::-webkit-scrollbar{
+            width: 7px;
+        }
+        .todo-container::-webkit-scrollbar-thumb{
+            background: #d5d5d5;
+            border-radius: 20px;
+        }        
+
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.querySelector("input.todo-input");
+            const addButton = document.querySelector(".add-button");
+            const todoHTML = document.querySelector(".todos");
+            const emptyImage = document.querySelector(".empty-image");
+            let todoJson = JSON.parse(localStorage.getItem("todos")) || [];
+
+            function getTodoHTML(todo, index) {
+                const checked = todo.status === "completed" ? "checked" : "";
+                return `      
+                <li class="todo">
+                    <label for="${index}">
+                        <input type="checkbox" onclick="updateStatus(this)" id="${index}" ${checked}>
+                        <span class="${checked}">${todo.name}</span>
+                    </label>
+                    <button class="delete-btn" data-index="${index}" onclick="remove(this)"><i class="fa fa-times"></i></button>
+                </li>`;
+            }
+
+            function showTodos() {
+                if (todoJson.length === 0) {
+                    todoHTML.innerHTML = '';
+                    emptyImage.style.display = 'block';
+                } else {
+                    todoHTML.innerHTML = todoJson.map(getTodoHTML).join('');
+                    emptyImage.style.display = 'none';
+                }
+            }
+
+            function addTodo(todo) {
+                input.value = '';
+                todoJson.unshift({ name: todo, status: "pending" });
+                localStorage.setItem("todos", JSON.stringify(todoJson));
+                showTodos();
+            }
+
+            input.addEventListener('keyup', e => {
+                let todo = input.value.trim();
+                if (!todo || e.key !== "Enter") {
+                    return;
+                }
+                addTodo(todo);
+            });
+
+            addButton.addEventListener("click", () => {
+                let todo = input.value.trim();
+                if (!todo) {
+                    return;
+                }
+                addTodo(todo);
+            });
+
+            window.updateStatus = function(todo) {
+                let todoName = todo.parentElement.lastElementChild;
+                if (todo.checked) {
+                    todoName.classList.add("checked");
+                    todoJson[todo.id].status = "completed";
+                } else {
+                    todoName.classList.remove("checked");
+                    todoJson[todo.id].status = "pending";
+                }
+                localStorage.setItem("todos", JSON.stringify(todoJson));
+                showTodos();
+            };
+
+            window.remove = function(todo) {
+                const index = todo.dataset.index;
+                todoJson.splice(index, 1);
+                localStorage.setItem("todos", JSON.stringify(todoJson));
+                showTodos();
+            };
+
+            showTodos();
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Todo List</h1>
+        <div class="input-container">
+            <input type="text" class="todo-input" placeholder="Add a new task">
+            <button class="add-button">
+                <i class="fa fa-plus-circle"></i>
+            </button>
+        </div>
+        <div class="todo-container">
+            <ul class="todos"></ul>
+            <img src="empty.svg" alt="" class="empty-image">
+        </div>
+    </div>
+
+</body>
+</html>
